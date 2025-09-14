@@ -1,3 +1,18 @@
+import { useAuth } from "./context/AuthContext";
+
+const AppContent = () => {
+  const { isAuthLoading } = useAuth();
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  return null;
+};
 import Profile from "./pages/Profile";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
