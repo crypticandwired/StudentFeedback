@@ -25,7 +25,7 @@ const Profile = () => {
         reset: resetPasswordForm,
     } = useForm();
 
-    // This useEffect hook now safely checks if user and user.dateOfBirth exist before setting form values.
+    // Safely populate the form only when user data is available
     useEffect(() => {
         if (user) {
             reset({
@@ -76,22 +76,12 @@ const Profile = () => {
         }
     };
 
-    // A simple loading check for when the user object is not yet available.
-    if (!user) {
-        return (
-            <Layout>
-                <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
-                </div>
-            </Layout>
-        );
-    }
-
     return (
         <Layout>
-            <div className="bg-white rounded-lg shadow p-6 max-w-2xl mx-auto">
+            <div className="card max-w-2xl mx-auto">
+                {/* Profile Details Section */}
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+                    <h1 className="text-2xl font-bold">My Profile</h1>
                     {!isEditing && (
                         <button onClick={() => setIsEditing(true)} className="btn-secondary">
                             Edit Profile
@@ -100,35 +90,35 @@ const Profile = () => {
                 </div>
 
                 {isEditing ? (
-                    <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4 border-b pb-6 mb-6">
+                    <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4 border-b border-border pb-6 mb-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
+                            <label className="block text-sm font-medium text-muted-foreground">Profile Picture</label>
                             <input
                                 type="file"
                                 accept="image/*"
                                 onChange={(e) => setProfilePicture(e.target.files[0])}
-                                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                                className="mt-1 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                            <label className="block text-sm font-medium text-muted-foreground">Full Name</label>
                             <input {...register("name", { required: "Name is required" })} className="input-field" />
-                            {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>}
+                            {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <label className="block text-sm font-medium text-muted-foreground">Phone Number</label>
                             <input {...register("phone", { required: "Phone is required" })} className="input-field" />
-                            {errors.phone && <p className="text-sm text-red-600 mt-1">{errors.phone.message}</p>}
+                            {errors.phone && <p className="text-sm text-destructive mt-1">{errors.phone.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                            <label className="block text-sm font-medium text-muted-foreground">Date of Birth</label>
                             <input {...register("dateOfBirth", { required: "Date of Birth is required" })} type="date" className="input-field" />
-                            {errors.dateOfBirth && <p className="text-sm text-red-600 mt-1">{errors.dateOfBirth.message}</p>}
+                            {errors.dateOfBirth && <p className="text-sm text-destructive mt-1">{errors.dateOfBirth.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Address</label>
+                            <label className="block text-sm font-medium text-muted-foreground">Address</label>
                             <textarea {...register("address", { required: "Address is required" })} className="input-field" />
-                            {errors.address && <p className="text-sm text-red-600 mt-1">{errors.address.message}</p>}
+                            {errors.address && <p className="text-sm text-destructive mt-1">{errors.address.message}</p>}
                         </div>
                         <div className="flex justify-end space-x-3">
                             <button type="button" onClick={() => setIsEditing(false)} className="btn-secondary">Cancel</button>
@@ -136,7 +126,7 @@ const Profile = () => {
                         </div>
                     </form>
                 ) : (
-                    <div className="space-y-2 border-b pb-6 mb-6">
+                    <div className="space-y-2 border-b border-border pb-6 mb-6">
                         <img src={user.profilePicture || '/placeholder-user.jpg'} alt="Profile" className="w-24 h-24 rounded-full object-cover mx-auto mb-4" />
                         <p><span className="font-medium">Name:</span> {user.name}</p>
                         <p><span className="font-medium">Email:</span> {user.email}</p>
@@ -146,20 +136,20 @@ const Profile = () => {
                     </div>
                 )}
 
-                <div >
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Change Password</h2>
+                <div>
+                    <h2 className="text-xl font-bold mb-4">Change Password</h2>
                     <form onSubmit={handleSubmitPassword(onPasswordSubmit)} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Current Password</label>
+                            <label className="block text-sm font-medium text-muted-foreground">Current Password</label>
                             <input
                                 type="password"
                                 {...registerPassword("currentPassword", { required: "Current password is required" })}
                                 className="input-field"
                             />
-                            {passwordErrors.currentPassword && <p className="text-sm text-red-600 mt-1">{passwordErrors.currentPassword.message}</p>}
+                            {passwordErrors.currentPassword && <p className="text-sm text-destructive mt-1">{passwordErrors.currentPassword.message}</p>}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">New Password</label>
+                            <label className="block text-sm font-medium text-muted-foreground">New Password</label>
                             <input
                                 type="password"
                                 {...registerPassword("newPassword", {
@@ -172,7 +162,7 @@ const Profile = () => {
                                 })}
                                 className="input-field"
                             />
-                            {passwordErrors.newPassword && <p className="text-sm text-red-600 mt-1">{passwordErrors.newPassword.message}</p>}
+                            {passwordErrors.newPassword && <p className="text-sm text-destructive mt-1">{passwordErrors.newPassword.message}</p>}
                         </div>
                         <div className="flex justify-end">
                             <button type="submit" disabled={isLoading} className="btn-primary">{isLoading ? "Updating..." : "Update Password"}</button>
