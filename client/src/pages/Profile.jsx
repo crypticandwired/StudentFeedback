@@ -16,29 +16,8 @@ const Profile = () => {
         handleSubmit,
         formState: { errors },
         reset,
-    } = useForm({
-        defaultValues: {
-            name: user?.name,
-            phone: user?.phone,
-            dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
-            address: user?.address,
-        },
-    });
+    } = useForm();
 
-    useEffect(() => {
-        // Reset form with user data when user object is available
-        if (user) {
-            reset({
-                name: user.name,
-                phone: user.phone,
-                dateOfBirth: new Date(user.dateOfBirth).toISOString().split('T')[0],
-                address: user.address,
-            });
-        }
-    }, [user, reset]);
-
-
-    // Form for changing password
     const {
         register: registerPassword,
         handleSubmit: handleSubmitPassword,
@@ -46,13 +25,22 @@ const Profile = () => {
         reset: resetPasswordForm,
     } = useForm();
 
+    // This useEffect hook now safely checks if user and user.dateOfBirth exist before setting form values.
+    useEffect(() => {
+        if (user) {
+            reset({
+                name: user.name,
+                phone: user.phone,
+                dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+                address: user.address,
+            });
+        }
+    }, [user, reset]);
+
     const onProfileSubmit = async (data) => {
         setIsLoading(true);
         const formData = new FormData();
-        formData.append("name", data.name);
-        formData.append("phone", data.phone);
-        formData.append("dateOfBirth", data.dateOfBirth);
-        formData.append("address", data.address);
+        Object.keys(data).forEach(key => formData.append(key, data[key]));
         if (profilePicture) {
             formData.append("profilePicture", profilePicture);
         }
@@ -88,10 +76,20 @@ const Profile = () => {
         }
     };
 
+    // A simple loading check for when the user object is not yet available.
+    if (!user) {
+        return (
+            <Layout>
+                <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+                </div>
+            </Layout>
+        );
+    }
+
     return (
         <Layout>
             <div className="bg-white rounded-lg shadow p-6 max-w-2xl mx-auto">
-                {/* Profile Details Section */}
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
                     {!isEditing && (
@@ -103,7 +101,6 @@ const Profile = () => {
 
                 {isEditing ? (
                     <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4 border-b pb-6 mb-6">
-                        {/* Profile Picture Upload */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
                             <input
@@ -113,7 +110,6 @@ const Profile = () => {
                                 className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                             />
                         </div>
-                        {/* Other Profile Fields */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Full Name</label>
                             <input {...register("name", { required: "Name is required" })} className="input-field" />
@@ -141,17 +137,16 @@ const Profile = () => {
                     </form>
                 ) : (
                     <div className="space-y-2 border-b pb-6 mb-6">
-                        <img src={user?.profilePicture || '/placeholder-user.jpg'} alt="Profile" className="w-24 h-24 rounded-full object-cover mx-auto mb-4" />
-                        <p><span className="font-medium">Name:</span> {user?.name}</p>
-                        <p><span className="font-medium">Email:</span> {user?.email}</p>
-                        <p><span className="font-medium">Phone:</span> {user?.phone}</p>
-                        <p><span className="font-medium">Date of Birth:</span> {user ? new Date(user.dateOfBirth).toLocaleDateString() : ''}</p>
-                        <p><span className="font-medium">Address:</span> {user?.address}</p>
+                        <img src={user.profilePicture || '/placeholder-user.jpg'} alt="Profile" className="w-24 h-24 rounded-full object-cover mx-auto mb-4" />
+                        <p><span className="font-medium">Name:</span> {user.name}</p>
+                        <p><span className="font-medium">Email:</span> {user.email}</p>
+                        <p><span className="font-medium">Phone:</span> {user.phone}</p>
+                        <p><span className="font-medium">Date of Birth:</span> {new Date(user.dateOfBirth).toLocaleDateString()}</p>
+                        <p><span className="font-medium">Address:</span> {user.address}</p>
                     </div>
                 )}
 
-                {/* Change Password Section */}
-                <div>
+                <div >
                     <h2 className="text-xl font-bold text-gray-900 mb-4">Change Password</h2>
                     <form onSubmit={handleSubmitPassword(onPasswordSubmit)} className="space-y-4">
                         <div>
@@ -179,7 +174,6 @@ const Profile = () => {
                             />
                             {passwordErrors.newPassword && <p className="text-sm text-red-600 mt-1">{passwordErrors.newPassword.message}</p>}
                         </div>
-
                         <div className="flex justify-end">
                             <button type="submit" disabled={isLoading} className="btn-primary">{isLoading ? "Updating..." : "Update Password"}</button>
                         </div>
