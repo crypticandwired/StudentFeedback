@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -11,30 +11,40 @@ const Profile = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [profilePicture, setProfilePicture] = useState(null);
 
-    // Form for editing profile details
     const {
         register,
         handleSubmit,
         formState: { errors },
+        reset,
     } = useForm({
         defaultValues: {
             name: user?.name,
             phone: user?.phone,
-            dateOfBirth: user ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+            dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
             address: user?.address,
         },
     });
+
+    useEffect(() => {
+        // Reset form with user data when user object is available
+        if (user) {
+            reset({
+                name: user.name,
+                phone: user.phone,
+                dateOfBirth: new Date(user.dateOfBirth).toISOString().split('T')[0],
+                address: user.address,
+            });
+        }
+    }, [user, reset]);
+
 
     // Form for changing password
     const {
         register: registerPassword,
         handleSubmit: handleSubmitPassword,
         formState: { errors: passwordErrors },
-        watch,
         reset: resetPasswordForm,
     } = useForm();
-
-    const newPassword = watch("newPassword");
 
     const onProfileSubmit = async (data) => {
         setIsLoading(true);
@@ -115,15 +125,15 @@ const Profile = () => {
                             {errors.phone && <p className="text-sm text-red-600 mt-1">{errors.phone.message}</p>}
                         </div>
                         <div>
-                  <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
-                  <input {...register("dateOfBirth", { required: "Date of Birth is required" })} type="date" className="input-field" />
-                  {errors.dateOfBirth && <p className="text-sm text-red-600 mt-1">{errors.dateOfBirth.message}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Address</label>
-                  <textarea {...register("address", { required: "Address is required" })} className="input-field" />
-                  {errors.address && <p className="text-sm text-red-600 mt-1">{errors.address.message}</p>}
-                </div>
+                            <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                            <input {...register("dateOfBirth", { required: "Date of Birth is required" })} type="date" className="input-field" />
+                            {errors.dateOfBirth && <p className="text-sm text-red-600 mt-1">{errors.dateOfBirth.message}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Address</label>
+                            <textarea {...register("address", { required: "Address is required" })} className="input-field" />
+                            {errors.address && <p className="text-sm text-red-600 mt-1">{errors.address.message}</p>}
+                        </div>
                         <div className="flex justify-end space-x-3">
                             <button type="button" onClick={() => setIsEditing(false)} className="btn-secondary">Cancel</button>
                             <button type="submit" disabled={isLoading} className="btn-primary">{isLoading ? "Saving..." : "Save Changes"}</button>
@@ -169,7 +179,7 @@ const Profile = () => {
                             />
                             {passwordErrors.newPassword && <p className="text-sm text-red-600 mt-1">{passwordErrors.newPassword.message}</p>}
                         </div>
-                        
+
                         <div className="flex justify-end">
                             <button type="submit" disabled={isLoading} className="btn-primary">{isLoading ? "Updating..." : "Update Password"}</button>
                         </div>
