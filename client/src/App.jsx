@@ -1,3 +1,4 @@
+import Profile from "./pages/Profile";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
 import { AuthProvider } from "./context/AuthContext"
@@ -89,16 +90,24 @@ function App() {
             />
             <Route
               path="/admin/analytics"
-              element={
-                <ProtectedRoute adminOnly>
-                  <AdminAnalytics />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminAnalytics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </div>
+  </Router>
+</AuthProvider>
   )
 }
 
