@@ -92,9 +92,9 @@ cp .env.example .env
 MONGODB_URI=mongodb://localhost:27017/student-feedback
 JWT_SECRET=your-super-secret-jwt-key-here
 JWT_EXPIRE=30d
-CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name (optional)
-CLOUDINARY_API_KEY=your-cloudinary-api-key (optional)
-CLOUDINARY_API_SECRET=your-cloudinary-api-secret (optional)
+CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name 
+CLOUDINARY_API_KEY=your-cloudinary-api-key 
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret 
 PORT=5000
 \`\`\`
 
@@ -201,5 +201,11 @@ cd client && npm run build
 \`\`\`bash
 cd server && npm start
 \`\`\`
+Sample Test Login
+The application provides separate login endpoints for students and administrators.
+
+Student Sign Up: To create a student account, navigate to the /register endpoint on the frontend and provide a name, email, and password.
+
+Admin Login: The application has an admin-login endpoint. The default credentials for an admin account need to be created manually in the database. A common practice is to create a user and set their role field to admin directly in the database 
 
 
