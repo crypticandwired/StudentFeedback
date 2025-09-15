@@ -1,203 +1,100 @@
-"use client"
-
-import { createContext, useContext, useReducer, useEffect, useState } from "react";
+import { createContext, useContext, useReducer, useEffect } from "react";
 import axios from "axios";
 
 const AuthContext = createContext();
 
 const authReducer = (state, action) => {
-  switch (action.type) {
-    case "LOGIN_START":
-    case "REGISTER_START":
-      return {
-        ...state,
-        loading: true,
-        error: null,
-      };
-    case "LOGIN_SUCCESS":
-    case "REGISTER_SUCCESS":
-      return {
-        ...state,
-        loading: false,
-        isAuthenticated: true,
-        user: action.payload.user,
-        token: action.payload.token,
-        error: null,
-      };
-    case "LOGIN_FAILURE":
-    case "REGISTER_FAILURE":
-      return {
-        ...state,
-        loading: false,
-        isAuthenticated: false,
-        user: null,
-        token: null,
-        error: action.payload,
-      };
-    case "LOGOUT":
-      return {
-        ...state,
-        isAuthenticated: false,
-        user: null,
-        token: null,
-        error: null,
-      };
-    case "LOAD_USER":
-      return {
-        ...state,
-        isAuthenticated: true,
-        user: action.payload,
-        loading: false,
-      };
-    case "UPDATE_USER":
-        return {
-            ...state,
-            user: action.payload,
-        };
-    default:
-      return state;
-  }
-};
-
-const initialState = {
-  isAuthenticated: false,
-  user: null,
-  token: localStorage.getItem("token"),
-  loading: false,
-  error: null,
+    switch (action.type) {
+        case 'INITIALIZE':
+            return {
+                ...state,
+                isAuthenticated: !!action.payload.user,
+                user: action.payload.user,
+                loading: false,
+            };
+        case 'LOGIN':
+            return { ...state, isAuthenticated: true, user: action.payload.user };
+        case 'LOGOUT':
+            return { ...state, isAuthenticated: false, user: null };
+        case 'UPDATE_USER':
+            return { ...state, user: action.payload };
+        default:
+            return state;
+    }
 };
 
 export const AuthProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(authReducer, initialState);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-
-  useEffect(() => {
-    if (state.token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${state.token}`;
-      localStorage.setItem("token", state.token);
-    } else {
-      delete axios.defaults.headers.common["Authorization"];
-      localStorage.removeItem("token");
-    }
-  }, [state.token]);
-
-  useEffect(() => {
-    const loadUserOnMount = async () => {
-      if (state.token) {
-        await loadUser();
-      }
-      setIsAuthLoading(false);
-    };
-    loadUserOnMount();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const response = await axios.get("/api/auth/me");
-      dispatch({
-        type: "LOAD_USER",
-        payload: response.data.user,
-      });
-    } catch (error) {
-      console.error("Load user error:", error);
-      logout();
-    }
-  };
-
-  const register = async (userData) => {
-    dispatch({ type: "REGISTER_START" });
-    try {
-      const response = await axios.post("/api/auth/register", userData);
-      dispatch({
-        type: "REGISTER_SUCCESS",
-        payload: response.data,
-      });
-      return { success: true, message: response.data.message };
-    } catch (error) {
-      const message = error.response?.data?.message || "Registration failed";
-      dispatch({
-        type: "REGISTER_FAILURE",
-        payload: message,
-      });
-      return { success: false, message };
-    }
-  };
-
-  const login = async (credentials) => {
-    dispatch({ type: "LOGIN_START" });
-    try {
-      const response = await axios.post("/api/auth/login", credentials);
-      dispatch({
-        type: "LOGIN_SUCCESS",
-        payload: response.data,
-      });
-      return { success: true, message: response.data.message };
-    } catch (error) {
-      const message = error.response?.data?.message || "Login failed";
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: message,
-      });
-      return { success: false, message };
-    }
-  };
-
-  const adminLogin = async (credentials) => {
-    dispatch({ type: "LOGIN_START" });
-    try {
-      const response = await axios.post("/api/auth/admin-login", credentials);
-      dispatch({
-        type: "LOGIN_SUCCESS",
-        payload: response.data,
-      });
-      return { success: true, message: response.data.message };
-    } catch (error) {
-      const message = error.response?.data?.message || "Admin login failed";
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: message,
-      });
-      return { success: false, message };
-    }
-  };
-
-  const logout = () => {
-    dispatch({ type: "LOGOUT" });
-  };
-
-  const updateUser = (userData) => {
-    dispatch({
-        type: 'UPDATE_USER',
-        payload: userData,
+    const [state, dispatch] = useReducer(authReducer, {
+        isAuthenticated: false,
+        user: null,
+        loading: true,
     });
-  };
 
-  const value = {
-    ...state,
-    isAuthLoading,
-    register,
-    login,
-    adminLogin,
-    logout,
-    updateUser,
-  };
+    useEffect(() => {
+        const initialize = async () => {
+            const token = localStorage.getItem("token");
+            if (token) {
+                axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                try {
+                    const response = await axios.get("/api/auth/me");
+                    dispatch({ type: 'INITIALIZE', payload: { user: response.data.user } });
+                } catch (error) {
+                    localStorage.removeItem("token");
+                    dispatch({ type: 'INITIALIZE', payload: { user: null } });
+                }
+            } else {
+                dispatch({ type: 'INITIALIZE', payload: { user: null } });
+            }
+        };
+        initialize();
+    }, []);
 
-  // This is the key change: Do not render children until authentication is resolved.
-  if (isAuthLoading) {
+    const login = async (credentials) => {
+        const response = await axios.post("/api/auth/login", credentials);
+        const { token, user } = response.data;
+        localStorage.setItem("token", token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        dispatch({ type: 'LOGIN', payload: { user } });
+        return user;
+    };
+
+    const adminLogin = async (credentials) => {
+        const response = await axios.post("/api/auth/admin-login", credentials);
+        const { token, user } = response.data;
+        localStorage.setItem("token", token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        dispatch({ type: 'LOGIN', payload: { user } });
+        return user;
+    };
+
+    const register = async (userData) => {
+        const response = await axios.post("/api/auth/register", userData);
+        const { token, user } = response.data;
+        localStorage.setItem("token", token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        dispatch({ type: 'LOGIN', payload: { user } });
+        return user;
+    };
+
+    const logout = () => {
+        localStorage.removeItem("token");
+        delete axios.defaults.headers.common["Authorization"];
+        dispatch({ type: 'LOGOUT' });
+    };
+
+    const updateUser = (userData) => {
+        dispatch({ type: 'UPDATE_USER', payload: userData });
+    };
+
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
-      </div>
+        <AuthContext.Provider value={{ ...state, login, adminLogin, register, logout, updateUser }}>
+            {state.loading ? (
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+                </div>
+            ) : children}
+        </AuthContext.Provider>
     );
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
