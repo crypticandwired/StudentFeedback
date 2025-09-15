@@ -4,12 +4,18 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "concurrently -k -n CLIENT,SERVER -c green,blue \"npm:dev:client\" \"npm:dev:server\"",
+    "build:all": "concurrently -n NEXT,CLIENT -c magenta,green "npm run build" "npm run build:client"",
+    "build:client": "cd client && npm run build",
+    "build:server": "echo Server has no build step",
+    "dev": "concurrently -k -n CLIENT,SERVER -c green,blue "npm:dev:client" "npm:dev:server"",
     "dev:client": "cd client && npm run dev",
-    "dev:server": "cd server && npm run dev",
+    "dev:server": "cd server && npm run dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "concurrently -k -n CLIENT,SERVER -c green,blue "npm:start:client" "npm:start:server"",
+    "start:client": "cd client && npm run preview -- --port 3000",
+    "start:server": "cd server && npm start"
   },
+
   "dependencies": {
     "@heroicons/react": "latest",
     "@hookform/resolvers": "^3.9.1",
