@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "concurrently -k -n CLIENT,SERVER -c green,blue \"npm:dev:client\" \"npm:dev:server\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
     "lint": "next lint",
     "start": "next start"
   },
